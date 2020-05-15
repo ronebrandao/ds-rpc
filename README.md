@@ -28,12 +28,8 @@ A tabela do banco de dados se chama `performance_info` e possui os seguintes cam
 | disk_avaliable   | double |
 
 ## Execução
-* navegue para a pasta do projeto
-
-Passos para a execução:
-
-`cd server` -> `go run main.go`  
-
-`cd client` -> `go run main.go`
+* navegue para a pasta do projeto no `terminal
+* execute `cd server` e logo depois `go run main.go`  
+* abra um novo terminal, execute `cd client` e logo depois `go run main.go`  
 
 Uma vez em execução, o cliente irá automaticamente enviar informações sobre a máquina a cada dez segundos. 
