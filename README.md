@@ -32,7 +32,8 @@ A tabela do banco de dados se chama `performance_info` e possui os seguintes cam
 
 Passos para a execução:
 
-`cd server` -> `go run main.go`
+`cd server` -> `go run main.go`  
+
 `cd client` -> `go run main.go`
 
 Uma vez em execução, o cliente irá automaticamente enviar informações sobre a máquina a cada dez segundos. 
