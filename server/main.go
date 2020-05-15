@@ -3,19 +3,19 @@ package main
 import (
 	"context"
 	"ds-rpc/proto"
+	"fmt"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
 	"net"
 )
 
 type server struct {
-
 }
 
 func main() {
- 	listener, err := net.Listen("tcp", ":4040")
- 	if err != nil {
- 		panic(err)
+	listener, err := net.Listen("tcp", ":4040")
+	if err != nil {
+		panic(err)
 	}
 
 	srv := grpc.NewServer()
@@ -27,20 +27,14 @@ func main() {
 	}
 }
 
-func (s* server) Add(ctx context.Context, request *proto.Request) (*proto.Response, error) {
-	a, b := request.GetA(), request.GetB()
+func (s *server) PerformanceReport(ctx context.Context, request *proto.Request) (*proto.Response, error) {
+	cpu := request.GetCPU()
+	usageRAM, avaliableRam := request.GetUsedRAM(), request.GetAvaliableRAM()
+	usedDisk, avaliableDisk :=request.GetUsedDisk(), request.GetAvaliableDisk()
 
-	result := a + b
+	fmt.Println(cpu, usageRAM, avaliableRam, usedDisk, avaliableDisk)
 
-	return &proto.Response{Result: result}, nil
+	result := true
+
+	return &proto.Response{Success: result}, nil
 }
-
-func (s* server) Multiply(ctx context.Context, request *proto.Request) (*proto.Response, error) {
-	a, b := request.GetA(), request.GetB()
-
-	result := a * b
-
-	return &proto.Response{Result: result}, nil
-}
-
-
