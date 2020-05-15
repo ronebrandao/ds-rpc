@@ -1,22 +1,15 @@
 package main
 
 import (
+	"context"
 	"ds-rpc/proto"
 	"fmt"
-	"github.com/gin-gonic/gin"
+	"github.com/jasonlvhit/gocron"
+	"github.com/mackerelio/go-osstat/cpu"
+	"github.com/mackerelio/go-osstat/memory"
 	"google.golang.org/grpc"
-	"log"
-	"net/http"
-	"strconv"
+	"time"
 )
-
-type info struct {
-	cpu int64
-	usedRAM int64
-	avaliableRAM int64
-	usedDisk int64
-	avaliableDisk int64
-}
 
 func main() {
 	conn, err := grpc.Dial("localhost:4040", grpc.WithInsecure())
@@ -24,76 +17,78 @@ func main() {
 		panic(err)
 	}
 
+	fmt.Println("!-- Information gattering starting in 10 seconds --!")
+
 	client := proto.NewAddServiceClient(conn)
 
-	g := gin.Default()
-	g.POST("/info", func(ctx *gin.Context) {
-		form, errors := validateForm(ctx)
+	ctx := context.Background()
 
-		if len(errors) > 0 {
-			ctx.JSON(http.StatusBadRequest, gin.H{"errors": errors})
-		}
+	go func() {
+		gocron.Every(10).Seconds().Do(func() {
+			fmt.Println("!-- Begining information gattering --!")
+			cpuUsage, err := getCPU()
+			if err != nil {
+				fmt.Println("*** It was not possible to obtain the CPU usage ***")
+			}
 
-		req := &proto.Request{
-			CPU: form.cpu,
-			UsedRAM: form.usedRAM,
-			AvaliableRAM: form.avaliableRAM,
-			UsedDisk: form.usedDisk,
-			AvaliableDisk: form.avaliableDisk,
-		}
+			memoryStats, err := getMemoryStats()
+			if err != nil {
+				fmt.Println("*** It was not possible to memory the CPU usage ***")
+			}
 
-		if response, err := client.PerformanceReport(ctx, req); err == nil {
-			ctx.JSON(http.StatusOK, gin.H{"result": fmt.Sprint(response.Success)})
-		} else {
-			ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		}
-	})
+			req := &proto.Request{
+				CPU:           cpuUsage,
+				UsedRAM:       float32(memoryStats.Used),
+				AvaliableRAM:  float32(memoryStats.Free),
+				UsedDisk:      0.0,
+				AvaliableDisk: 0.0,
+			}
 
+			if response, err := client.PerformanceReport(ctx, req); err == nil {
+				printResponse(response)
+			} else {
+				printResponse(&proto.Response{Success: false})
+			}
+		})
+	}()
 
-
-	if err = g.Run(":8080"); err != nil {
-		log.Fatalf("Failed to run server: %v", err)
-	}
+	<-gocron.Start()
 
 }
 
-func validateForm(ctx *gin.Context) (*info, []string) {
-	errors := make([]string, 0)
+func printResponse(response *proto.Response) {
+	if response.Success {
+		fmt.Println("--- Performance status sucessefully saved! ---")
+	} else {
+		fmt.Println("*** Error on trying to save performance status! ***")
+	}
+}
 
-	cpu, err := strconv.ParseInt(ctx.PostForm("cpu"), 10, 64)
+func getCPU() (float32, error) {
+	before, err := cpu.Get()
 	if err != nil {
-		errors = append(errors, "Invalid Parameter 'cpu'")
+		return 0.0, nil
 	}
+	time.Sleep(time.Duration(1) * time.Second)
 
-	usedRAM, err := strconv.ParseInt(ctx.PostForm("usedRAM"), 10, 64)
+	after, err := cpu.Get()
 	if err != nil {
-		errors = append(errors, "Invalid Parameter 'usedRAM'")
+		return 0.0, nil
 	}
 
-	avaliableRAM, err := strconv.ParseInt(ctx.PostForm("avaliableRAM"), 10, 64)
+	total := float64(after.Total - before.Total)
+
+	user := float64(after.User-before.User) / total * 100
+	system := float64(after.System-before.System) / total * 100
+
+	return float32(user + system), nil
+}
+
+func getMemoryStats() (*memory.Stats, error) {
+	memory, err := memory.Get()
 	if err != nil {
-		errors = append(errors, "Invalid Parameter 'avaliableRAM'")
+		return nil, err
 	}
 
-	usedDisk , err := strconv.ParseInt(ctx.PostForm("usedDisk"), 10, 64)
-	if err != nil {
-		errors = append(errors, "Invalid Parameter 'usedDisk'")
-	}
-
-	avaliableDisk  , err := strconv.ParseInt(ctx.PostForm("avaliableDisk"), 10, 64)
-	if err != nil {
-		errors = append(errors, "Invalid Parameter 'avaliableDisk'")
-	}
-
-	if len(errors) > 0 {
-		return nil, errors
-	}
-
-	return &info{
-		cpu:           cpu,
-		usedRAM:       usedRAM,
-		avaliableRAM:  avaliableRAM,
-		usedDisk:      usedDisk,
-		avaliableDisk: avaliableDisk,
-	}, nil
+	return memory, nil
 }

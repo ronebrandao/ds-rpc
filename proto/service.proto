@@ -3,11 +3,11 @@ syntax = "proto3";
 package proto;
 
 message Request {
-  int64 CPU = 1;
-  int64 UsedRAM = 2;
-  int64 AvaliableRAM = 3;
-  int64 UsedDisk = 4;
-  int64 AvaliableDisk = 5;
+  float CPU = 1;
+  float UsedRAM = 2;
+  float AvaliableRAM = 3;
+  float UsedDisk = 4;
+  float AvaliableDisk = 5;
 }
 
 message Response {
