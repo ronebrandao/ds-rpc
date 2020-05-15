@@ -1,2 +1,38 @@
-# ds-rpc
-RPC application developed to my Distributed Systems class.
+# gRPC em GO
+
+## Projeto
+
+O projeto é divido em 3 diretórios:
+- client
+- proto
+- server
+
+### client
+É responsável por coletar as informações e enviá-las ao servidor
+
+### proto
+Define o `service` em `Protocol Buffers` que será utilizado na comunicação entre cliente e servidor.
+
+### server
+Obtém as informações enviadas pelo cliente e salva em um banco de dados `postgres`.
+
+A tabela do banco de dados se chama `performance_info` e possui os seguintes campos:
+
+| campo            | tipo   |
+|------------------|--------|
+| id               | serial |
+| cpu              | double |
+| memory_used      | double |
+| memory_avaliable | double |
+| disk_used        | double |
+| disk_avaliable   | double |
+
+## Execução
+* navegue para a pasta do projeto
+
+Passos para a execução:
+
+`cd server` -> `go run main.go`
+`cd client` -> `go run main.go`
+
+Uma vez em execução, o cliente irá automaticamente enviar informações sobre a máquina a cada dez segundos. 
