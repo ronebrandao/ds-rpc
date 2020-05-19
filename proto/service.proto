@@ -2,18 +2,43 @@ syntax = "proto3";
 
 package proto;
 
-message Request {
-  float CPU = 1;
-  float UsedRAM = 2;
-  float AvaliableRAM = 3;
-  float UsedDisk = 4;
-  float AvaliableDisk = 5;
+message Client {
+  string id = 1;
+  string Name = 2;
 }
+
+message Report {
+  string msgId = 1;
+  float CPU = 2;
+  float UsedRAM = 3;
+  float AvaliableRAM = 4;
+  float UsedDisk = 5;
+  float AvaliableDisk = 6;
+}
+
+message ServerRequest {
+  bool SendInfo = 1;
+}
+
+message PerfReport {
+  Client client = 1;
+  Report message = 2;
+  string timestamp = 3;
+}
+
+message Connect {
+  Client client = 1;
+  bool active = 2;
+}
+
+message Close {}
 
 message Response {
   bool success = 1;
 }
 
-service AddService {
-  rpc PerformanceReport(Request) returns (Response);
+service Broadcast {
+  rpc PerformanceReport(PerfReport) returns (Response);
+  rpc CreateStream(Connect) returns (stream ServerRequest);
+  rpc RequestInfo(Client) returns (Close);
 }

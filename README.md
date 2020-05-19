@@ -30,6 +30,8 @@ A tabela do banco de dados se chama `performance_info` e possui os seguintes cam
 ## Execução
 * navegue para a pasta do projeto no `terminal
 * execute `cd server` e logo depois `go run main.go`  
-* abra um novo terminal, execute `cd client` e logo depois `go run main.go`  
+* abra um novo terminal, execute `cd client` e logo depois `go run main.go -N NomeDoCliente`  
 
 Uma vez em execução, o cliente irá automaticamente enviar informações sobre a máquina a cada dez segundos. 
+No server-side é logado no terminal os diferentes status de quem solicita e envia. A atualizacao para envio do 
+report via client é de 10 segundos enquanto o servidor solicita para todos os clients conectados num intervalo de 15 segundos.
